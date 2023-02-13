@@ -1,0 +1,39 @@
+{
+    "1":{
+        "svn_url":"svn://172.22.28.5/test",
+        "remote":[
+            {
+                "ip":"127.0.0.1"
+            }
+        ],
+        "new":"/home/wwwroot/test/new/test",
+        "release":"/home/wwwroot/test/release/test",
+        "branch_name":"test项目",
+        "module_name":"wwwweb"
+    },
+    "2":{
+        "svn_url":"svn://172.22.28.5/test",
+        "remote":[
+            {
+                "ip":"127.0.0.1"
+            }
+        ],
+        "new":"/home/wwwroot/test/new/test",
+        "release":"/home/wwwroot/test/release/test",
+        "branch_name":"test项目2",
+        "module_name":"wwwweb"
+    },
+    "3":{
+        "svn_url":"svn://172.22.28.5/test",
+        "remote":[
+            {
+                "ip":"127.0.0.1"
+
+            }
+        ],
+        "new":"/home/wwwroot/test/new/test",
+        "release":"/home/wwwroot/test/release/test",
+        "branch_name":"test项目3",
+        "module_name":"wwwweb"
+    }
+}

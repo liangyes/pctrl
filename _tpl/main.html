@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>控制台</title>
+	
+</head>
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.1.1.min.js"></script>
+
+<style type="text/css">
+	
+	body{
+			max-width: 1920px;
+			min-width: 320px;
+			background: gray;
+			margin: 0 auto;
+	}
+
+	.header{
+			height: 30px;
+			line-height: 30px;
+			max-width: 1920px;
+			background: #585348;
+			font-size: 12px;
+			display: flex;
+  		    justify-content: space-between;
+	}
+	#bodyer{
+		display: flex;
+  		    justify-content: space-between;
+  		    height:100%
+	}
+	.bodyer_top p{
+		height: 30px;
+		line-height: 30px;
+		background: #171711;
+		text-align: left;
+		width: 100%;
+		font-size: 18px;
+		color: white;
+	}
+	.bodyer_top button{
+		height: 30px;
+		line-height: 30px;
+		background: #46463e;
+		text-align: center;
+		width: 100%;
+		font-size: 12px;
+		color: white;
+		cursor:pointer;
+	}
+	.bodyer_right_branch tr{
+		background: #b3b9c1;
+		border: 1px solid gray;
+		color: black;
+	}
+
+	td{
+		text-align: center;
+	}
+
+	.bodyer_right_branch button{
+		width: 80px;
+		height: 40px;
+		background: #1a1515;
+		color: white;
+		cursor: pointer;
+	}
+
+</style>
+
+<body>
+	
+	<div class="header">
+		 
+		<span style="color: white;flex: 4;">欢迎: <?php echo $_SESSION['username'] ?> </span>
+
+		<span style="flex: 2">
+			
+			<select id="branch_id" name="branch_id">
+				
+				<?php foreach($svn_arr as $v){ ?>	
+				  
+				  <option value="<?php echo $v['id'] ?>"><?php echo $v['branch_name']; ?></option>
+
+				<?php } ?>  
+			</select>
+
+			<button id="change_branch">切换项目</button>
+
+			<span class="now_branch" style="color: red;">当前项目</span>
+		</span>
+
+		<span style="flex: 1;">
+			<button class="logout">退出</button>
+		</span>
+	</div>
+
+	<div id="bodyer">
+			
+			<div class="bodyer_top" style="background: #2f2626;flex:1;">
+				
+				<div class="bodyer_left_branch" style="display: none;">
+					<p>合并代码</p>
+				
+					<input type="hidden" name="now_branch_id" value="">
+					<button id="branch_list" >合并列表</button>
+
+					<p>正式环境更新</p>
+				
+					<button class="branch_release" >发布代码</button>
+				</div>	
+
+				
+
+			</div>
+
+			<div style="flex: 5;">
+				
+				<div  class="bodyer_right_branch" style="display:none;" >
+					
+
+						<h3 style="color: white;"></h3>
+
+						<table style="width:100%;max-width: 1920px;min-width: 640px;">
+							
+							<thead>
+								<tr>
+									<!-- <td style="width:10%"></td> -->
+									<td style="width:10%">版本号</td>
+									<td style="width:10%">作者</td>
+									<td style="width:20%">时间</td>
+									<td style="width:40%;overflow: hidden;">日志</td>
+									<td style="width:10%">操作</td>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+
+						
+						</table>
+
+						<p style="margin: 20px;color: #181515;">
+								
+						</p>
+
+						<!-- <button class="branch_merge" style="margin: 20px;">合并</button> -->
+						<input type="hidden" name="branch_merge_id" value="">
+				</div>
+
+			</div>
+	</div>
+
+</body>
+<script type="text/javascript">
+		
+	var bodyer=document.getElementById('bodyer');
+
+	
+	bodyer.style.height =window.innerWidth+'px' 
+
+
+
+	change_branch.onclick=function(){
+			
+			var value =$('#branch_id').val()
+			
+			
+			if(value==undefined){
+				alert("非法操作，重新登录")
+			}
+
+
+			$.post('/main/branch',{"branch_id":value},function(res){
+				//console.log("从服务接收到的数据：",res);
+				$('.bodyer_right_branch tbody').html('')
+				$('.bodyer_right_branch').hide()
+				if(res.code=200){
+					$('.now_branch').text('当前项目:'+$('#branch_id').find("option:selected").text())
+					$('.bodyer_left_branch').show()
+					$('input[name="now_branch_id"]').val(value)	
+
+				}else{
+					$('.bodyer_left_branch').hide()
+				}
+	
+			},'json')
+	}
+
+
+	$('#branch_list').on('click',function(){
+		
+		branch_list()
+	})
+
+
+	function branch_list(){
+		var value=$('input[name="now_branch_id"]').val()
+		$('.bodyer_right_branch p').html('')	
+		$.post('/main/branch_log',{"branch_id":value},function(res){
+				$('table').show()
+				if(res.code==200){
+					$('input[name="branch_merge_id"]').val(value)
+					$('.bodyer_right_branch').show()
+					$('.bodyer_right_branch h3').text("当前版本号："+res.data.now_version)
+
+					$('.bodyer_right_branch tbody').html('')
+
+					var str_html
+					var log=res.data.list
+					for(var i=0 in log){
+						console.log(log[i])
+
+						var button='<button class="branch_merge" data-type=2 data-id='+log[i].id+'>合并</button>'
+						
+						if(log[i].id<res.data.now_version){
+							 button='<button class="branch_callback" data-type=1 data-id='+log[i].id+'>回滚</button>'
+						}
+						if(res.data.now_version==log[i].id){
+							 button=''
+						}
+
+
+						str_html+='<tr><td>'+log[i].id+'</td><td>'+log[i].user+'</td><td>'+log[i].time+'</td><td>'+log[i].desc+'</td><td>'+button+'</td></tr>'
+
+					}
+
+					$('.bodyer_right_branch tbody').append(str_html)
+
+					
+				}
+
+		},'json')
+	}
+
+
+
+	//合并
+	$('.bodyer_right_branch').delegate('.branch_merge','click',function(){
+
+		var id=$(this).data('id')
+
+		
+
+		if (id==undefined) {
+			alert('非法操作');
+			return 
+		}
+
+	    $('.bodyer_right_branch p').html("合并中，请稍等！")
+
+		var branch_id=$('input[name="branch_merge_id"]').val()
+
+		$.post('/main/branch_merge',{"branch_id":branch_id,'version':id},function(res){
+
+				if(res.code==200){
+
+					branch_list();
+
+				}
+				$('.bodyer_right_branch p').html('<br>'+res.msg)
+
+		},'json')
+
+	})
+
+	//回滚
+	$('.bodyer_right_branch').delegate('.branch_callback','click',function(){
+
+		var id=$(this).data('id')
+		
+		if (id==undefined) {
+			alert('非法操作');
+			return 
+		}
+
+		$('.bodyer_right_branch p').html("回滚中，请稍等！")
+		var branch_id=$('input[name="branch_merge_id"]').val()
+
+		$.post('/main/callback',{"branch_id":branch_id,'version':id},function(res){
+
+				if(res.code==200){
+
+					branch_list();
+
+				}
+				$('.bodyer_right_branch p').html('<br>'+res.msg)
+
+		},'json')
+
+	})
+
+
+
+	//发布
+	$('.branch_release').on('click',function(){
+
+			var branch_id=$('input[name="branch_merge_id"]').val()
+			$.post('/main/release',{"branch_id":branch_id},function(res){
+				if(res.code==200){
+					$('.bodyer_right_branch p').html('<br>'+res.msg)	
+					$('table').hide()
+				}
+
+			},'json')
+
+	})
+
+	//退出
+	$('.logout').on('click',function(){
+		   $.post('/login/logout',{'logout':1},function(res){
+
+		   			if(res.code==200){window.location.reload()}
+		   			window.location.reload()
+		   })
+	})
+</script>
+</html>
